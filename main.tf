@@ -136,7 +136,7 @@ resource "aws_instance" "aws2" {
   key_name                    = var.key_name
   vpc_security_group_ids      = [aws_security_group.aakulov-aws2.id]
   subnet_id                   = aws_subnet.subnet_private.id
-  associate_public_ip_address = true
+  associate_public_ip_address = false
   user_data                   = file("scripts/install_nginx.sh")
   tags = {
     Name = "aakulov-aws2"
