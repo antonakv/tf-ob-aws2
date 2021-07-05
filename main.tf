@@ -26,7 +26,13 @@ resource "aws_subnet" "subnet_private1" {
 resource "aws_subnet" "subnet_public" {
   vpc_id            = aws_vpc.vpc.id
   cidr_block        = var.cidr_subnet2
-  availability_zone = "eu-central-1a"
+  availability_zone = "eu-central-1b"
+}
+
+resource "aws_subnet" "subnet_public1" {
+  vpc_id            = aws_vpc.vpc.id
+  cidr_block        = var.cidr_subnet4
+  availability_zone = "eu-central-1c"
 }
 
 resource "aws_internet_gateway" "igw" {
@@ -87,11 +93,11 @@ resource "aws_route_table_association" "aws2-public" {
   route_table_id = aws_route_table.aws2-public.id
 }
 
-resource "aws_security_group" "aakulov-aws2" {
+resource "aws_security_group" "aws2-internal-sg" {
   vpc_id = aws_vpc.vpc.id
-  name   = "aakulov-aws2"
+  name   = "aws2-internal-sg"
   tags = {
-    Name = "aakulov-aws2"
+    Name = "aws2-internal-sg"
   }
 
   ingress {
@@ -106,6 +112,42 @@ resource "aws_security_group" "aakulov-aws2" {
     to_port     = 22
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port       = 80
+    to_port         = 80
+    protocol        = "tcp"
+    security_groups = [aws_security_group.aws2-lb-sg.id]
+  }
+
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+resource "aws_security_group" "aws2-lb-sg" {
+  vpc_id = aws_vpc.vpc.id
+  name   = "aws2-lb-sg"
+  tags = {
+    Name = "aws2-lb-sg"
   }
 
   ingress {
@@ -134,10 +176,9 @@ resource "aws_instance" "aws2" {
   ami                         = var.ami
   instance_type               = var.instance_type
   key_name                    = var.key_name
-  vpc_security_group_ids      = [aws_security_group.aakulov-aws2.id]
+  vpc_security_group_ids      = [aws_security_group.aws2-internal-sg.id]
   subnet_id                   = aws_subnet.subnet_private.id
   associate_public_ip_address = false
-  user_data                   = file("scripts/install_nginx.sh")
   tags = {
     Name = "aakulov-aws2"
   }
@@ -199,8 +240,8 @@ resource "aws_lb" "aws2" {
   name               = "aakulov-aws2"
   internal           = false
   load_balancer_type = "application"
-  security_groups    = [aws_security_group.aakulov-aws2.id]
-  subnets            = [aws_subnet.subnet_private.id, aws_subnet.subnet_private1.id]
+  security_groups    = [aws_security_group.aws2-lb-sg.id]
+  subnets            = [aws_subnet.subnet_public.id, aws_subnet.subnet_public1.id]
 
   enable_deletion_protection = false
 }
