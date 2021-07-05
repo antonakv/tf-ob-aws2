@@ -6,3 +6,4 @@ variable "cidr_vpc" {}
 variable "cidr_subnet1" {}
 variable "cidr_subnet2" {}
 variable "cidr_subnet3" {}
+variable "cidr_subnet4" {}
