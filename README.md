@@ -36,10 +36,10 @@ Receiving objects: 100% (12/12), done.
 Resolving deltas: 100% (1/1), done.
 ```
 
-- Change folder to tf-ob-aws1
+- Change folder to tf-ob-aws2
 
 ```bash
-cd tf-ob-aws1
+cd tf-ob-aws2
 ```
 
 - Create file terraform.tfvars with following contents
